@@ -3,6 +3,7 @@
 
 #define _POSIX_C_SOURCE 200809L
 
+#include <getopt.h>
 #include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +38,7 @@ void print_str_from_to(char *str, int start, int end);
 char *get_pattern_from_file(char *file_name, char *pattern);
 char *get_pattern_from_arg(const char *opt_arg, char *pattern);
 char *get_mode(char ***argv, int *argc, char *flags, int *error,
-               char *str_flags);
+               char *str_flags, struct option long_options[]);
 void new_line(char *str, char *flags);
 void print_after_compare(int match_count, char *file_name, char *flags,
                          int argc);

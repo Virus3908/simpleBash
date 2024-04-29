@@ -3,12 +3,22 @@
 int main(int argc, char *argv[]) {
   int error = 0;
   char res_flags[COUNT_FLAGS] = "\0";
+  struct option long_options[] = {{"regexp", 1, 0, 'e'},
+                                  {"file", 1, 0, 'f'},
+                                  {"ignore-case", 0, 0, 'i'},
+                                  {"invert-match", 0, 0, 'v'},
+                                  {"count", 0, 0, 'c'},
+                                  {"files-with-matches", 0, 0, 'l'},
+                                  {"only-matching", 0, 0, 'o'},
+                                  {"no-messages", 0, 0, 's'},
+                                  {"no-filename", 0, 0, 'h'},
+                                  {"line-number", 0, 0, 'n'},
+                                  {0, 0, 0, 0}};
   // получаем флаги, и если есть флаги e и f записываем строку для сравнения
-  char *pattern_str = get_mode(&argv, &argc, res_flags, &error, STD_FLAGS);
+  char *pattern_str =
+      get_mode(&argv, &argc, res_flags, &error, STD_FLAGS, long_options);
   // если не было флагов e и f записываем аргумент
-  if (!strchr(res_flags, 'f') && !strchr(res_flags, 'e')) {
-    pattern_str = get_pattern(&argv, &argc);
-  }
+
   // если не было ошибок при считывании и есть аргумент файлов и есть строка для
   // сравнения
   if (!error && argc > 0 && pattern_str) {
@@ -23,10 +33,13 @@ int main(int argc, char *argv[]) {
 }
 // получаем флаги и если есть e или f - строку для сравнения
 char *get_mode(char ***argv, int *argc, char *flags, int *error,
-               char *str_flags) {
+               char *str_flags, struct option long_options[]) {
   int opt;
   char *opt_arg = NULL;
-  while ((opt = getopt(*argc, *argv, str_flags)) != -1 && !*error) {
+  int option_index = 0;
+  while ((opt = getopt_long(*argc, *argv, str_flags, long_options,
+                            &option_index)) != -1 &&
+         !*error) {
     if (opt != '?' && opt != ':') {
       if (optarg && opt == 'f') {
         opt_arg = get_pattern_from_file(optarg, opt_arg);
@@ -39,12 +52,15 @@ char *get_mode(char ***argv, int *argc, char *flags, int *error,
 
   (*argv) += optind;
   *argc -= optind;
+  if (!strchr(flags, 'f') && !strchr(flags, 'e') && *argc > 0) {
+    opt_arg = get_pattern(argv, argc);
+  }
   return opt_arg;
 }
 // В случае флага f получаем строки из файла
 char *get_pattern_from_file(char *file_name, char *pattern) {
   FILE *file;
-  if ((file = fopen(file_name, "r"))) {
+  if ((file = fopen(file_name, "rt"))) {
     char *curr_str = NULL;
     size_t len = 0;
     ssize_t read;
@@ -55,7 +71,7 @@ char *get_pattern_from_file(char *file_name, char *pattern) {
     fclose(file);
     free(curr_str);
   } else {
-    printf("s21_grep: %s: No such file or directory\n", file_name);
+    perror(file_name);
   }
 
   return pattern;
@@ -108,9 +124,7 @@ void file_out(char *file_name, char *flags, char *pattern_str, int argc) {
     print_after_compare(match_count, file_name, flags, argc);
     // если нет файла и не стоит флаг s
   } else if (!strchr(flags, 's')) {
-#ifndef TEST
-    printf("s21_grep: %s: No such file or directory\n", file_name);
-#endif
+    perror(file_name);
   }
 }
 

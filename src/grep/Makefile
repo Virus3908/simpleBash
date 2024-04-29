@@ -6,16 +6,8 @@ COMMON=../common/
 
 all: s21_grep clean_o
 
-build_test: s21_grep_test clean_o
-
 s21_grep: s21_grep_o common_o
 	$(CC) s21_grep.o common.o -o s21_grep 
-
-s21_grep_test: s21_grep_o_test common_o
-	$(CC) s21_grep_test.o common.o -o s21_grep 
-
-s21_grep_o_test:
-	$(CC) $(CFLAGS) -DTEST s21_grep.c -o s21_grep_test.o 
 
 s21_grep_o:
 	$(CC) $(CFLAGS) s21_grep.c -o s21_grep.o 

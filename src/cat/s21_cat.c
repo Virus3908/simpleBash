@@ -54,7 +54,7 @@ void s21_cat(char *file_name, char *flags) {
       fclose(file);
     }
   } else {
-    printf("s21_cat: %s: No such file or directory\n", file_name);
+    perror(file_name);
   }
 }
 // вывод символа на экран (или не вывод)
